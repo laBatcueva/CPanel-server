@@ -19,7 +19,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.ACTION_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Construir y publicar imagen para múltiples plataformas
         uses: docker/build-push-action@v4
