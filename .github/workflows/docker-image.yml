@@ -26,5 +26,5 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/laBatcueva/CPanel-server:latest
+          tags: ghcr.io/laBatcueva/cpanel-server:latest
           platforms: linux/amd64,linux/arm/v7
