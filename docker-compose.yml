@@ -1,0 +1,10 @@
+services:
+  api:
+    image: ghcr.io/labatcueva/cpanel-server:latest
+    container_name: cpanel-server
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=production
+      - PORT=3000

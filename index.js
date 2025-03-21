@@ -1,7 +1,9 @@
 import { Server } from 'socket.io';
 import si from 'systeminformation';
 
-console.log('Servidor Socket.IO en funcionamiento');
+const NODE_ENV = process.env.NODE_ENV || 'development';
+
+console.log(`Servidor Socket.IO en funcionamiento (${NODE_ENV})\n`);
 
 const io = new Server({
   cors: {
@@ -13,31 +15,28 @@ io.on('connection', (socket) => {
   console.log(`Conectado: ${socket.id}`, socket.request.headers);
 
   const sendSystemData = async () => {
-    const currentTime = new Date().toLocaleTimeString();
-
     try {
-      // Obtener uso de CPU
+      const uptimeData = si.time();
+      const uptime = formatUptime(uptimeData.uptime);
+
       const cpuData = await si.currentLoad();
-      const cpuPercentage = cpuData.currentLoad.toFixed(0); // Porcentaje de uso de CPU
+      const cpuPercentage = cpuData.currentLoad.toFixed(0);
 
-      // Obtener uso de memoria
       const memData = await si.mem();
-      const totalMemory = memData.total / (1024 * 1024); // Convertir de bytes a MB
-      const usedMemory = memData.active / (1024 * 1024); // Convertir de bytes a MB
-      const memoryUsage = ((usedMemory / totalMemory) * 100).toFixed(0); // Porcentaje de memoria usada
+      const totalMemory = memData.total / (1024 * 1024);
+      const usedMemory = memData.active / (1024 * 1024);
+      const memoryUsage = ((usedMemory / totalMemory) * 100).toFixed(0);
 
-      // Enviar datos al cliente
       socket.emit('systemData', {
-        time: currentTime,
-        cpuUsage: cpuPercentage,
-        memoryUsage: memoryUsage,
+        uptime: uptime,
+        cpuUsage: `${cpuPercentage}%`,
+        memoryUsage: `${memoryUsage}%`,
       });
     } catch (error) {
       console.error('Error obteniendo datos del sistema:', error);
     }
   };
 
-  // Enviar datos cada segundo
   const intervalId = setInterval(sendSystemData, 1000);
 
   socket.on('disconnect', (reason) => {
@@ -48,3 +47,16 @@ io.on('connection', (socket) => {
 });
 
 io.listen(3000);
+
+function formatUptime(seconds) {
+  const days = Math.floor(seconds / (3600 * 24));
+  const hours = Math.floor((seconds % (3600 * 24)) / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+
+  const parts = [];
+  if (days > 0) parts.push(`${days}d`);
+  if (hours > 0) parts.push(`${hours}h`);
+  if (minutes > 0) parts.push(`${minutes}m`);
+
+  return parts.join(' ') || '< 1m';
+}
